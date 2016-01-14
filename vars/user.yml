@@ -1,0 +1,10 @@
+project_root: /home/ubuntu/Code/Ansible/user_add
+key_files: /home/ubuntu/Code/Ansible/user_add/Keys
+
+users: 
+    - tariq
+    - neeraj
+    - hardeep
+    - pawan
+    - rohit
+    - pant

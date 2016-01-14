@@ -1,0 +1,16 @@
+---
+
+- hosts: ec2-54-179-156-233.ap-southeast-1.compute.amazonaws.com 
+  remote_user: ec2-user
+  sudo: yes
+  vars_files: 
+      - vars/user.yml
+
+  tasks:
+      - name: create user(s)
+        user: name=${item} shell=/bin/bash generate_ssh_key=yes 
+        with_items: ${users}
+
+      - name: Copy Remote-To-Remote 
+        fetch: src=/home/${item}/.ssh/id_rsa.pub dest=/tmp flat=no
+        with_items: ${users}

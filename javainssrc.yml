@@ -1,0 +1,49 @@
+- hosts: all 
+  remote_user: ec2-user
+  sudo: yes
+  vars:
+    download_url: http://download.oracle.com/otn-pub/java/jdk/8u45-b14/server-jre-8u45-linux-x64.tar.gz
+    download_folder: /usrdata/apps/java
+    java_name: "{{download_folder}}/jdk1.8.0_45"
+    java_archive: "{{download_folder}}/jdk-8u5-linux-x64.tar.gz"
+
+
+  tasks:
+  - name: Create usrdata
+    command: "mkdir -p /usrdata/apps/java"
+
+  - name: install wget
+    yum: name=wget state=present
+
+  - name: Download Java
+    command: "wget -q -O {{java_archive}} --no-check-certificate --no-cookies --header 'Cookie: oraclelicense=accept-securebackup-cookie' {{download_url}} creates={{java_archive}}"
+
+  - name: Unpack archive
+    command: "tar -zxf {{java_archive}} -C {{download_folder}} creates={{java_name}}"
+
+  - name: Fix ownership
+    file: state=directory path={{java_name}} owner=root group=root recurse=yes
+
+  - name: Make Java available for system
+    command: 'alternatives --install "/usr/bin/java" "java" "/usrdata/apps/java/jdk1.8.0_45/bin/java" 100 --slave "/usr/bin/keytool" "keytool" "/usrdata/apps/java/jdk1.8.0_45/bin/keytool" --slave "/usr/bin/rmiregistry" "rmiregistry" "/usrdata/apps/java/jdk1.8.0_45/bin/rmiregistry"'
+ 
+  - name: Make java available2
+    command: 'alternatives --install "/usr/bin/javac" "javac" "/usrdata/apps/java/jdk1.8.0_45/bin/javac" 100 --slave "/usr/bin/jar" "jar" "/usrdata/apps/java/jdk1.8.0_45/bin/jar" --slave "/usr/bin/rmic" "rmic" "/usrdata/apps/java/jdk1.8.0_45/bin/rmic"'
+ 
+  - name: Make Keytool Avail
+    command: 'alternatives --install "/usr/bin/servertool" "servertool" "/usrdata/apps/java/jdk1.8.0_45/bin/servertool" 100'
+
+  - name: Clean up
+    file: state=absent path={{java_archive}}
+
+  - name: Create user and Group
+    command: "groupadd servicesusrgroup"
+
+  - name: create user
+    command: "useradd -d /home/jersey -m -N -g servicesusrgroup -c 'User to Run servers' jersey"
+  
+  - name: Adding line1
+    lineinfile: dest=/etc/profile line="export JAVA_HOME=/usrdata/apps/java/jdk1.8.0_45" insertafter=EOF
+
+  - name: Adding line2
+    lineinfile: dest=/etc/profile line="export JRE_HOME=/usrdata/apps/java/jdk1.8.0_45/jre" insertafter=EOF
